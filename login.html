@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required> <!-- Alterado para email -->
+            <input type="password" id="password" placeholder="Senha" required>
+            <button type="submit">Entrar</button>
+        </form>
+        <p>Ainda não tem uma conta? <a href="index.html">Registrar</a></p>
+        <div id="userList" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value; // Alterado para email
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password }) // Alterado para email
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Login realizado com sucesso!');
+
+                // Fazer um GET das contas registradas
+                const userListResponse = await fetch('http://localhost:5000/api/auth/users', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${data.token}` // Incluindo o token no cabeçalho
+                    }
+                });
+
+                const users = await userListResponse.json();
+                const userListDiv = document.getElementById('userList');
+                userListDiv.innerHTML = '<h2>Contas Registradas:</h2>';
+                
+                users.forEach(user => {
+                    userListDiv.innerHTML += `<p>${user.username} - ${user.email} - ${user.role}</p>`;
+                });
+            } else {
+                alert(data.message);
+            }
+        });
+    </script>
+</body>
+</html>
